@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Agriculture Dashboard</title>
+<style>
+body { font-family: Arial; background: #f7f7f7; }
+.header {
+  background: #0d47a1; padding: 20px; color: white; text-align: center;
+  font-size: 28px; font-weight: bold;
+}
+.card { 
+  background: white; padding: 20px; margin: 15px; 
+  border-radius: 12px; width: 300px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: inline-block; 
+  vertical-align: top;
+}
+.label { color:#333; font-weight: bold; font-size: 18px; }
+.value { font-size: 28px; margin-top: 10px; }
+.motor-box {
+  margin: 20px auto; width: 50%; padding: 20px; 
+  background: #eef2f7; border-radius: 10px; text-align:center;
+  font-size: 22px;
+}
+</style>
+
+<script>
+async function loadData() {
+    let res = await fetch("/latest");
+    let d = await res.json();
+
+    document.getElementById("temp").innerHTML = d.temperature + " °C";
+    document.getElementById("light").innerHTML = d.light;
+    document.getElementById("soil").innerHTML = d.soil;
+    document.getElementById("motor").innerHTML = d.motor_status;
+}
+setInterval(loadData, 3000);
+</script>
+</head>
+
+<body>
+<div class="header">🌿 Smart Agriculture Dashboard</div>
+<h3 style="text-align:center; color:#666;">Live IoT Data from AWS S3</h3>
+
+<div class="card">
+  <div class="label">🌡 Temperature</div>
+  <div class="value" id="temp"></div>
+</div>
+
+<div class="card">
+  <div class="label">🌞 Light Intensity</div>
+  <div class="value" id="light"></div>
+</div>
+
+<div class="card">
+  <div class="label">🌱 Soil Moisture</div>
+  <div class="value" id="soil"></div>
+</div>
+
+<div class="motor-box">
+  <b>⚙ Motor Status</b><br/>
+  <span class="value" id="motor"></span>
+</div>
+
+</body>
+</html>
+

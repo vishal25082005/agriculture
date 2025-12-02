@@ -1,0 +1,237 @@
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include "DHT.h"
+
+// -------------------- Pin Setup --------------------
+#define LDR_PIN     34
+#define SOIL_PIN    35
+#define DHTPIN      4
+#define DHTTYPE     DHT11
+#define RELAY_PIN   5
+
+DHT dht(DHTPIN, DHTTYPE);
+
+// -------------------- Network / AWS --------------------
+const char* ssid = "Deepa";
+const char* password = "Deepa612";
+
+const char* awsEndpoint = "a1qidu2e6d7h54-ats.iot.us-east-1.amazonaws.com";
+const char* topic = "esp32/agrifarm/data";
+
+// ---- Root CA (Amazon Root CA 1) ----
+const char* rootCA = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
+ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
+b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL
+MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv
+b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj
+ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM
+9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw
+IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6
+VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L
+93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm
+jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC
+AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA
+A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI
+U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs
+N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv
+o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU
+5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy
+rqXRfboQnoZsG4q5WTP468SQvvG5
+-----END CERTIFICATE-----
+)EOF";
+
+// ---- Device certificate (your device .pem.crt) ----
+const char* certificate_pem_crt = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIDWTCCAkGgAwIBAgIUXFBIvKqQqmQWF9Akdfet66MUlmswDQYJKoZIhvcNAQEL
+BQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g
+SW5jLiBMPVNlYXR0bGUgU1Q9V2FzaGluZ3RvbiBDPVVTMB4XDTI1MTEwNjA5Mjg1
+MFoXDTQ5MTIzMTIzNTk1OVowHjEcMBoGA1UEAwwTQVdTIElvVCBDZXJ0aWZpY2F0
+ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOtjjU4kKgW7hfbPobch
+v4F/OaHH96JIoOlxdmswIWh62BA04R2xejAlpDf7PcoZH+imK4tbWLtMCS0oy5vz
+ImyO8h/fP1UlCurJ7o5wbKksSlrNCYfTcXVS8dlDI1EwTdqJflWyOqs8QqEhcc/+
+r+fOSY237HUEByWz1tSjb18AfNV5fawQ71e+pWfe/lQcJ59KCiZQhCweUOUlScj6
+boL+zyl3REhY1nmdwoO+swkajZp7biDPQef8anRjL+rZRzdJSigphjJ9Zt4Iv0+e
+mY3KiCQyscdBCZPppc30ASxjey4HQafa8qpimugwo8JvpihPPym/z3jSGN60f0VG
+rfMCAwEAAaNgMF4wHwYDVR0jBBgwFoAUTezyx3InehtYUuOpPo4X5qKSMscwHQYD
+VR0OBBYEFD2J+UThIH38nX6dusJ9Y2cb+gy9MAwGA1UdEwEB/wQCMAAwDgYDVR0P
+AQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4IBAQAltnme4rbBWCQn0sTeK4ostQXz
+NuJAHpxMMk5eqYIRH67ZvOyF5sJnPd461zQNV0cQ2HjoIzCyYsHb0jMuIQCb/Vc0
+6OqSZjDLq8ZWuw64LlSw1wsQKQhcLPEqQDSqkXoajmqHjfasQlqjSn1CUBf4fc2T
+VJl8XpWyKQCC3x/eOehflVROo12G9artJyhKGEikvp6YkVeVNldIJ5lh11X4xzTj
+D9jb8PqGjAgiSHKueRKdTtUP722aSpq5g8ef6mCk/1EKxMaOAoKlnuyImVz8EQIQ
+xm1/UGuztROCOouppXZFVW/2jRh42pBxHJXnOXvLFzXxu7t92ckWErxJAH8n
+-----END CERTIFICATE-----
+)EOF";
+
+// ---- Private key (your private.pem.key) ----
+const char* private_pem_key = R"EOF(
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA62ONTiQqBbuF9s+htyG/gX85ocf3okig6XF2azAhaHrYEDTh
+HbF6MCWkN/s9yhkf6KYri1tYu0wJLSjLm/MibI7yH98/VSUK6snujnBsqSxKWs0J
+h9NxdVLx2UMjUTBN2ol+VbI6qzxCoSFxz/6v585JjbfsdQQHJbPW1KNvXwB81Xl9
+rBDvV76lZ97+VBwnn0oKJlCELB5Q5SVJyPpugv7PKXdESFjWeZ3Cg76zCRqNmntu
+IM9B5/xqdGMv6tlHN0lKKCmGMn1m3gi/T56ZjcqIJDKxx0EJk+mlzfQBLGN7LgdB
+p9ryqmKa6DCjwm+mKE8/Kb/PeNIY3rR/RUat8wIDAQABAoIBADFfFhpXt4CwTm7w
+KekxaOuOddYbDTO6rBWKuN3OoJM7gOoVTUpfGVPT8VfUmKc1Ed5ITEXUiQ3v6tTQ
+A7TYEFZYvSw2NSB0vo90f1bc+c2Z/paA/wjALsH+/b8mN9glm47E2/y5f1i/MPJ/
+A1IvB1JFkGPrOetpRt5/lAXRqeBw4K8tuqjAtpTiQYh+sFUfzOpnHUchh2viVJVQ
+ZiHkMq4Z0NuudNbg05kiu4Dx4TraSCUU48pluFC1CYPnuNCwg4BtewimvJAPZnTG
+CdSwYFu2tQU8zmv/gWlwAZMIwDkVBHgt1Gacc1D3zg1z2UhuCBT8F7hx/Q3KkkVb
+s/aygYECgYEA/3HX6Xgvo54X7HmqfLXvJXLMEbCs3SQTHhPCZ8AJWvprdyvNyiJT
+UiDEGMabir1rmB3UxY1HQ/yyu0/JFiCh26Lv4ka1zrmR7fI84O5sTxjWNK+ZA75/
+W442Lf8m8Q3r5D+xfwUjDNFWd2hy0eesg4l/2jmL6N7dk+Jkru0JIGECgYEA6+aM
+IKcidBvRvDG66oJslrY7TdNWk+W02c3BRxTHuKUPeIRcVBgicv2WpLdpqcDVwH76
+cs37LyblOWydcIft0PLmzmHsAKXzzlzoKlArrbgN05/F5gn8sLlH140NvOlw98nm
+08xh0ienxpTAMJsxrOZ4cjm779fBVzXI4T9ZvtMCgYEAiZ7f4BysLc5CvVhfDYlH
+KjnKz80LlKiW1CF5H0RKxgUcWLv0xu3vTdPxUhfOPNUIXo/TzgrrVimScW/uukki
+ap5B9vp5gMJhaHyVZ+mL2KFc5k2kdmvvWXgooGdSp5QEfpgCHJi75W/y0aooEgZq
+3wL5KqzOP8uyPLY/4C48OIECgYA2Lu0urtT2EFG7RTzmknB4qYCznoA7Vj6U7HKh
+bf91xMvp5ZUDZ8u5189bJBmr+PPf1AqYhgFU0j1CVFVRPJd+L9yduNYpS/TVCHf3
+CBUQQL9ERWWCMfcNbHE47FgkdQYSlBhlu4MYby1VKmN+hpcBXKp7qhElxMvOyTbL
+re5iKwKBgQDF482KHiPPcPHosVXuTsLe8xSlCullypeyI+t9453O4+u6oCHFDYr4
+sguFcFp5ltNqYlSzhS9QHFRmZHFoa+O1n2ryVKcSdV1SHchTvJEypI9riSQCZODx
+LuiHzqTksSinLMe69ys1nYEZ7Yn4+wiUURv6kLwUKRcYtcgIsd7T6w==
+-----END RSA PRIVATE KEY-----
+)EOF";
+
+// ---------------------------------------------------------------------------
+
+WiFiClientSecure net;
+PubSubClient client(net);
+
+float lastHumidity = 60.0; // fallback if DHT read fails
+
+// -------------------- Helpers --------------------
+void connectWiFi() {
+  Serial.print("🔌 Connecting to WiFi ");
+  Serial.print(ssid);
+  Serial.print(" ... ");
+  WiFi.begin(ssid, password);
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    // Optional timeout (uncomment if you want a restart on timeout)
+    // if (millis() - start > 30000) ESP.restart();
+  }
+  Serial.println("\n✅ WiFi connected");
+  Serial.print("IP: "); Serial.println(WiFi.localIP());
+}
+
+String getClientId() {
+  String mac = WiFi.macAddress();       // example: "A4:CF:12:34:56:78"
+  mac.replace(":", "");
+  return "esp32-" + mac;
+}
+
+void connectAWS() {
+  net.setCACert(rootCA);
+  net.setCertificate(certificate_pem_crt);
+  net.setPrivateKey(private_pem_key);
+
+  client.setServer(awsEndpoint, 8883);
+
+  Serial.print("🔗 Connecting to AWS IoT... ");
+  String clientId = getClientId();
+  while (!client.connected()) {
+    if (client.connect(clientId.c_str())) {
+      Serial.println("\n✅ Connected to AWS IoT");
+    } else {
+      Serial.print(".");
+      delay(2000);
+    }
+  }
+}
+
+void publishToAWS(int ldr, int soil, float temp, float hum, const char* motorStatus) {
+  StaticJsonDocument<512> doc;
+  doc["deviceId"] = "esp32-agrifarm";
+  doc["ldr"] = ldr;
+  doc["soil_moisture"] = soil;
+  doc["temperature"] = temp;
+  doc["humidity"] = hum;
+  doc["motor_status"] = motorStatus;
+  doc["message"] = "AgriFarmESP32 live update";
+  doc["timestamp"] = millis();
+
+  char buf[512];
+  size_t n = serializeJson(doc, buf);
+  if (client.publish(topic, buf, true)) {   // retained = true optional
+    Serial.println("📤 Published to AWS IoT:");
+    Serial.println(buf);
+  } else {
+    Serial.println("⚠️ Publish failed");
+  }
+}
+
+// -------------------- Setup --------------------
+void setup() {
+  Serial.begin(115200);
+  pinMode(LDR_PIN, INPUT);
+  pinMode(SOIL_PIN, INPUT);
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+  dht.begin();
+
+  randomSeed(analogRead(0));
+  Serial.println();
+  Serial.println("🌾 SmartFarm: ESP32 + AWS IoT Core");
+
+  connectWiFi();
+  connectAWS();
+}
+
+// -------------------- Main Loop --------------------
+void loop() {
+  if (!client.connected()) {
+    connectAWS();
+  }
+  client.loop();
+
+  // Read sensors
+  int ldrValue = analogRead(LDR_PIN);        // 0..4095
+  int soilValue = analogRead(SOIL_PIN);      // 0..4095
+
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature(); // prefer real temperature from DHT
+  // fallback if DHT fails (keep last humidity)
+  if (isnan(humidity)) {
+    humidity = lastHumidity;
+  } else {
+    lastHumidity = humidity;
+  }
+  // if temperature read fails, use simulated value
+  if (isnan(temperature)) {
+    temperature = random(30, 35);
+  }
+
+  // Motor control logic
+  const char* motorStatus = "OFF";
+  if (soilValue > 2500) {
+    digitalWrite(RELAY_PIN, HIGH);
+    motorStatus = "ON";
+  } else if (soilValue < 1500) {
+    digitalWrite(RELAY_PIN, LOW);
+    motorStatus = "OFF";
+  }
+
+  // Serial debug
+  String soilCondition = (soilValue > 2500) ? "Dry" : (soilValue > 1500 ? "Moist" : "Wet");
+  Serial.print("🔆 Light: "); Serial.print(ldrValue);
+  Serial.print(" | 🌱 Soil: "); Serial.print(soilValue);
+  Serial.print(" (" + soilCondition + ")");
+  Serial.print(" | ⚙️ Motor: "); Serial.print(motorStatus);
+  Serial.print(" | 🌡️ Temp: "); Serial.print(temperature);
+  Serial.print(" °C | 💧 Humidity: "); Serial.println(humidity);
+
+  // Publish to AWS
+  publishToAWS(ldrValue, soilValue, temperature, humidity, motorStatus);
+
+  delay(5000); // publish every 5 seconds
+}
