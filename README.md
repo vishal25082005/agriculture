@@ -225,9 +225,7 @@ B.Tech – Electronics & Communication Engineering
 
 📧 **Email:** vishal.md2508@gmail.com
 
-💼 **LinkedIn:** https://linkedin.com/in/YOUR-LINKEDIN
 
-💻 **GitHub:** https://github.com/YOUR-GITHUB
 
 ---
 
