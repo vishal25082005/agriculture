@@ -1,232 +1,247 @@
 # 🌱 Edge–Cloud Smart Agriculture Infrastructure
 
-A cloud-native IoT solution that integrates **ESP32**, **AWS IoT Core**, **AWS Lambda**, **Amazon EC2**, **Amazon DynamoDB**, **Amazon S3**, and **MQTT** to enable real-time environmental monitoring and intelligent irrigation. The system combines edge computing with cloud processing to provide a scalable, secure, and reliable smart agriculture platform capable of operating even during network outages.
+A cloud-native IoT solution that integrates **ESP32**, **AWS IoT Core**, **AWS Lambda**, **Amazon EC2**, **Amazon DynamoDB**, **Amazon S3**, and **MQTT** to enable real-time environmental monitoring and intelligent irrigation. The system combines edge computing with cloud processing to provide a scalable, secure, and reliable smart agriculture platform.
 
 ---
 
-## 📖 Overview
+# 📖 Overview
 
-The Edge–Cloud Smart Agriculture Infrastructure is designed to automate agricultural monitoring and irrigation using IoT and AWS cloud technologies. Environmental data is collected through ESP32-connected sensors and securely transmitted to AWS IoT Core using MQTT. AWS Lambda processes incoming sensor data, which is stored in Amazon DynamoDB for real-time analytics and Amazon S3 for long-term storage. A Dockerized Flask dashboard hosted on Amazon EC2 provides live monitoring, while Amazon SNS sends instant notifications whenever abnormal environmental conditions are detected.
+The **Edge–Cloud Smart Agriculture Infrastructure** is designed to automate agricultural monitoring and irrigation using IoT and AWS cloud technologies.
 
-To ensure uninterrupted operation, the ESP32 performs local irrigation control by activating the relay whenever soil moisture falls below a predefined threshold, allowing the system to continue functioning even during temporary cloud or network failures.
+The system collects environmental parameters such as **soil moisture**, **temperature**, **humidity**, and **light intensity** using ESP32-connected sensors. Sensor data is securely transmitted using the MQTT protocol to **AWS IoT Core**, where it is processed by **AWS Lambda**. The processed data is stored in **Amazon DynamoDB** for real-time monitoring and **Amazon S3** for long-term storage.
+
+A **Flask-based web dashboard** hosted on **Amazon EC2** allows users to monitor live sensor readings remotely, while **Amazon SNS** sends instant alerts whenever abnormal environmental conditions are detected.
+
+To improve reliability, the ESP32 performs local irrigation control by activating the relay whenever soil moisture falls below a predefined threshold, ensuring uninterrupted irrigation even during temporary network outages.
 
 ---
 
-## ✨ Features
+# ✨ Features
 
-- 🌱 Real-time soil moisture monitoring
-- 🌡️ Temperature and humidity monitoring using DHT11
-- ☀️ Ambient light monitoring using LDR sensor
-- 💧 Automatic irrigation using relay-controlled water pump
-- ☁️ Hybrid Edge–Cloud architecture
-- 📡 Secure MQTT communication with AWS IoT Core
-- ⚡ Serverless event processing using AWS Lambda
-- 📊 Live monitoring dashboard hosted on Amazon EC2
-- 🗄️ Real-time sensor data storage using Amazon DynamoDB
-- 📁 Long-term storage using Amazon S3
-- 🔔 Instant alerts using Amazon SNS
-- 🐳 Dockerized Flask application deployment
-- 🔒 Secure cloud infrastructure using AWS IAM
-- 🌐 Continuous operation during internet outages
+* Real-time soil moisture monitoring
+* Temperature and humidity monitoring
+* Ambient light monitoring
+* Automatic irrigation using relay-controlled water pump
+* Hybrid Edge–Cloud architecture
+* MQTT-based communication
+* AWS IoT Core integration
+* AWS Lambda serverless processing
+* Amazon DynamoDB real-time storage
+* Amazon S3 long-term storage
+* Flask dashboard hosted on Amazon EC2
+* Amazon SNS email notifications
+* Dockerized deployment
+* Continuous operation during internet outages
 
 ---
 
 # 🏗️ System Architecture
 
-<p align="center">
-  <img src="architecture/architecture.png" alt="Edge Cloud Smart Agriculture Architecture" width="900">
-</p>
+![Architecture](ARCHITECTURE.png)
 
 ---
 
-## 🔄 Project Workflow
+# 🔄 Project Workflow
 
-1. ESP32 collects temperature, humidity, soil moisture, and light intensity from connected sensors.
-2. Sensor readings are securely transmitted to **AWS IoT Core** using the **MQTT protocol**.
-3. The **AWS IoT Core Rules Engine** routes incoming messages to **AWS Lambda**.
-4. AWS Lambda validates and processes sensor data.
-5. Processed sensor readings are stored in **Amazon DynamoDB** for real-time access.
-6. Historical reports and supporting files are archived in **Amazon S3**.
-7. A **Dockerized Flask dashboard** hosted on **Amazon EC2** retrieves sensor data and displays live environmental conditions.
-8. **Amazon SNS** sends email notifications whenever abnormal conditions are detected.
-9. During network interruptions, the **ESP32 autonomously controls irrigation**, ensuring uninterrupted operation.
+1. ESP32 collects soil moisture, temperature, humidity, and light intensity data.
+2. Sensor data is transmitted securely using MQTT over Wi-Fi.
+3. AWS IoT Core receives the telemetry.
+4. AWS Lambda processes incoming sensor data.
+5. Processed data is stored in Amazon DynamoDB.
+6. Historical data and supporting files are stored in Amazon S3.
+7. The Flask application hosted on Amazon EC2 retrieves sensor data and displays it on a live dashboard.
+8. Amazon SNS sends email notifications whenever abnormal environmental conditions are detected.
+9. During network interruptions, the ESP32 autonomously controls irrigation using the relay module.
 
 ---
 
 # ☁️ AWS Services Used
 
-| Service | Purpose |
-|----------|---------|
-| AWS IoT Core | Secure MQTT communication with ESP32 |
-| AWS Lambda | Serverless sensor data processing |
+| AWS Service     | Purpose                       |
+| --------------- | ----------------------------- |
+| AWS IoT Core    | MQTT communication with ESP32 |
+| AWS Lambda      | Sensor data processing        |
 | Amazon DynamoDB | Real-time sensor data storage |
-| Amazon S3 | Long-term storage of reports and files |
-| Amazon EC2 | Hosting Flask monitoring dashboard |
-| Amazon SNS | Email notifications and alerts |
-| AWS IAM | Identity and access management |
+| Amazon S3       | Long-term data storage        |
+| Amazon EC2      | Hosting Flask web dashboard   |
+| Amazon SNS      | Email notifications           |
+| AWS IAM         | Secure cloud resource access  |
 
 ---
 
 # 🛠️ Technology Stack
 
 ### Cloud
-- AWS IoT Core
-- Amazon EC2
-- AWS Lambda
-- Amazon DynamoDB
-- Amazon S3
-- Amazon SNS
-- AWS IAM
+
+* AWS IoT Core
+* Amazon EC2
+* AWS Lambda
+* Amazon DynamoDB
+* Amazon S3
+* Amazon SNS
+* AWS IAM
 
 ### IoT & Hardware
-- ESP32
-- MQTT
-- DHT11 Sensor
-- Soil Moisture Sensor
-- LDR Sensor
-- Relay Module
-- Water Pump
+
+* ESP32
+* MQTT
+* DHT11 Temperature & Humidity Sensor
+* Soil Moisture Sensor
+* LDR Sensor
+* Relay Module
+* Water Pump
 
 ### Backend
-- Python
-- Flask
+
+* Python
+* Flask
 
 ### DevOps
-- Docker
-- Git
-- Linux
+
+* Docker
+* Git
+* Linux
 
 ---
 
 # 🔌 Hardware Components
 
-- ESP32 Development Board
-- DHT11 Temperature & Humidity Sensor
-- Soil Moisture Sensor
-- LDR Sensor
-- Relay Module
-- Water Pump
-- Breadboard
-- Jumper Wires
-- Wi-Fi Network
+* ESP32 Development Board
+* DHT11 Sensor
+* Soil Moisture Sensor
+* LDR Sensor
+* Relay Module
+* Water Pump
+* Breadboard
+* Jumper Wires
+* Wi-Fi Connection
 
 ---
 
 # 📂 Repository Structure
 
-```
-Edge-Cloud-Smart-Agriculture/
+```text
+Smart-Agriculture/
 │
-├── architecture/
-│   └── architecture.png
-│
-├── esp32/
-│   ├── smart_agriculture.ino
-│   └── mqtt_config.h
-│
-├── lambda/
-│   └── lambda_function.py
-│
-├── flask_app/
-│   ├── app.py
-│   ├── templates/
-│   ├── static/
-│   └── requirements.txt
-│
-├── docker/
-│   └── Dockerfile
-│
-├── screenshots/
-│   ├── hardware_setup.png
-│   ├── dashboard.png
-│   ├── dynamodb_table.png
-│   ├── aws_console.png
-│   └── sns_email.png
-│
+├── ARCHITECTURE.png
+├── Dockerfile
+├── MQTT-TRANSFER
+├── MQTT-TRANSFER.png
 ├── README.md
-└── requirements.txt
+├── TRANSFER OF DATA THROUGH MQTT.jpg
+├── app.py
+├── dashboard.jpg
+├── index.html
+├── microesp
+├── s3 live data.PNG
+├── serial monitoring.jpg
+├── smart-lambda.py
+└── sns output.jpg
 ```
 
 ---
 
-# 📸 Screenshots
+# 📸 Project Screenshots
 
-## Hardware Setup
+## System Architecture
 
-> Add an image of your ESP32 hardware setup.
-
----
-
-## AWS Architecture
-
-> Add the architecture diagram.
+![Architecture](ARCHITECTURE.png)
 
 ---
 
-## Flask Dashboard
+## MQTT Communication
 
-> Add your dashboard screenshot.
-
----
-
-## DynamoDB Table
-
-> Add a screenshot of stored sensor data.
+![MQTT](MQTT-TRANSFER.png)
 
 ---
 
-## Amazon SNS Alert
+## MQTT Data Transfer
 
-> Add a screenshot of the email notification.
+![MQTT Data](TRANSFER%20OF%20DATA%20THROUGH%20MQTT.jpg)
+
+---
+
+## Web Dashboard
+
+![Dashboard](dashboard.jpg)
+
+---
+
+## Amazon S3 Storage
+
+![S3](s3%20live%20data.PNG)
+
+---
+
+## ESP32 Serial Monitor
+
+![Serial Monitor](serial%20monitoring.jpg)
+
+---
+
+## Amazon SNS Notification
+
+![SNS](sns%20output.jpg)
+
+---
+
+# 📄 Source Files
+
+| File                | Description                                                                  |
+| ------------------- | ---------------------------------------------------------------------------- |
+| **app.py**          | Flask application that provides the web dashboard hosted on Amazon EC2.      |
+| **smart-lambda.py** | AWS Lambda function that processes MQTT messages and stores sensor data.     |
+| **index.html**      | User interface for the monitoring dashboard.                                 |
+| **microesp**        | ESP32 program responsible for sensor data collection and MQTT communication. |
+| **Dockerfile**      | Docker configuration used to containerize the Flask application.             |
+| **MQTT-TRANSFER**   | MQTT communication configuration and reference file.                         |
 
 ---
 
 # 🚀 Future Enhancements
 
-- 📱 Mobile application for farmers
-- 🤖 AI-based irrigation prediction
-- 🌦️ Weather API integration
-- 🌾 Crop health prediction
-- 🌍 Multi-farm monitoring
-- 📈 AWS CloudWatch analytics
-- 🔄 OTA firmware updates
-- 📊 Historical trend visualization
+* AI-based irrigation prediction
+* Weather API integration
+* Mobile application
+* Multi-farm monitoring
+* OTA firmware updates
+* AWS CloudWatch monitoring
+* Historical analytics dashboard
 
 ---
 
 # 📚 Skills Demonstrated
 
-- Internet of Things (IoT)
-- Edge Computing
-- Cloud Computing
-- AWS IoT Core
-- AWS Lambda
-- Amazon EC2
-- Amazon DynamoDB
-- Amazon S3
-- Amazon SNS
-- MQTT Protocol
-- Flask
-- Docker
-- Python
-- ESP32
-- Embedded Systems
-- Cloud-Native Application Development
+* Internet of Things (IoT)
+* Edge Computing
+* Cloud Computing
+* AWS IoT Core
+* AWS Lambda
+* Amazon EC2
+* Amazon DynamoDB
+* Amazon S3
+* Amazon SNS
+* MQTT
+* Flask
+* Docker
+* Python
+* ESP32
+* Embedded Systems
+* Cloud-Native Application Development
 
 ---
 
 # 👨‍💻 Author
 
-**Vishal M**
+*Vishal M
 
-Cloud & IoT Engineer
+**Cloud & IoT Engineer**
 
 B.Tech – Electronics & Communication Engineering
+
+**Skills:** AWS • IoT • Cloud Computing • DevOps • Docker • Python • MQTT
 
 📧 **Email:** vishal.md2508@gmail.com
 
 
-
----
-
-## ⭐ If you found this project interesting, consider giving it a Star!
+⭐ **If you found this project useful, consider giving it a Star!**
