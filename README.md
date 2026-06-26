@@ -149,12 +149,6 @@ Smart-Agriculture/
 
 ---
 
-## MQTT Communication
-
-![MQTT](MQTT-TRANSFER.png)
-
----
-
 ## MQTT Data Transfer
 
 ![MQTT Data](TRANSFER%20OF%20DATA%20THROUGH%20MQTT.jpg)
